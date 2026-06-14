@@ -10,6 +10,7 @@ const getRecommendations = async (req, res) => {
       profile: result.profile,
       plan: result.plan,
       statistics: result.statistics,
+      nutrition: result.nutrition,
       recommendations: result.recommendations,
     });
   } catch (error) {

@@ -23,6 +23,7 @@ const Navbar = () => {
             <Link to="/profile">Профіль</Link>
             <Link to="/exercises">Вправи</Link>
             <Link to="/workout-plan">План</Link>
+            <Link to="/nutrition">Харчування</Link>
             <Link to="/history">Історія</Link>
             <Link to="/recommendations">Рекомендації</Link>
             <button onClick={handleLogout}>Вийти</button>

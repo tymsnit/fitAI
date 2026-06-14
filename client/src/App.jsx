@@ -13,6 +13,7 @@ import ExercisesPage from './pages/ExercisesPage';
 import WorkoutPlanPage from './pages/WorkoutPlanPage';
 import WorkoutHistoryPage from './pages/WorkoutHistoryPage';
 import RecommendationsPage from './pages/RecommendationsPage';
+import NutritionPage from './pages/NutritionPage';
 
 const App = () => {
   return (
@@ -79,6 +80,16 @@ const App = () => {
                 </ProtectedRoute>
               }
             />
+
+            <Route
+              path="/nutrition"
+              element={
+                <ProtectedRoute>
+                  <NutritionPage />
+                </ProtectedRoute>
+              }
+            />
+
           </Routes>
         </main>
       </BrowserRouter>
