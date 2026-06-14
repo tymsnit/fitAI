@@ -10,6 +10,7 @@ const recommendationRoutes = require('./routes/recommendationRoutes');
 const workoutRoutes = require('./routes/workoutRoutes');
 const workoutHistoryRoutes = require('./routes/workoutHistoryRoutes');
 const nutritionRoutes = require('./routes/nutritionRoutes');
+const aiRecommendationRoutes = require('./routes/aiRecommendationRoutes');
 
 const app = express();
 
@@ -30,6 +31,7 @@ app.use('/api/recommendations', recommendationRoutes);
 app.use('/api/workouts', workoutRoutes);
 app.use('/api/workout-history', workoutHistoryRoutes);
 app.use('/api/nutrition', nutritionRoutes);
+app.use('/api/ai-recommendations', aiRecommendationRoutes);
 
 const PORT = process.env.PORT || 5000;
 

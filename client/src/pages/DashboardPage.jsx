@@ -67,6 +67,9 @@ const DashboardPage = () => {
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [aiSummaryData, setAiSummaryData] = useState(null);
+  const [isGeneratingAiSummary, setIsGeneratingAiSummary] = useState(false);
+  const [aiSummaryError, setAiSummaryError] = useState('');
 
   const loadDashboardData = async () => {
     try {
@@ -99,6 +102,33 @@ const DashboardPage = () => {
       );
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const generateAiSummary = async () => {
+    try {
+      setIsGeneratingAiSummary(true);
+      setAiSummaryError('');
+
+      const response = await apiClient.get('/ai-recommendations/summary');
+
+      setAiSummaryData({
+        available: response.data.available,
+        source: response.data.source,
+        model: response.data.model,
+        aiSummary: response.data.aiSummary,
+      });
+
+      setRecommendations(response.data.recommendations || []);
+      setStatistics(response.data.statistics || null);
+      setNutrition(response.data.nutrition || null);
+    } catch (error) {
+      setAiSummaryError(
+        error.response?.data?.message ||
+          'Не вдалося згенерувати AI-узагальнення'
+      );
+    } finally {
+      setIsGeneratingAiSummary(false);
     }
   };
 
@@ -161,6 +191,20 @@ const DashboardPage = () => {
   const expertSystemRecommendationsCount = recommendations.filter(
     (item) => item.source === 'rule_based_expert_system'
   ).length;
+
+  const renderAiSummary = (text) => {
+    if (!text) {
+      return null;
+    }
+
+    return text
+      .split('\n')
+      .map((paragraph) => paragraph.trim())
+      .filter(Boolean)
+      .map((paragraph, index) => (
+        <p key={`${paragraph.slice(0, 20)}-${index}`}>{paragraph}</p>
+      ));
+  };
 
   if (isLoading) {
     return (
@@ -467,6 +511,72 @@ const DashboardPage = () => {
             Рекомендації формуються на основі формалізованих правил, що
             аналізують тренувальні дані, харчування та профіль користувача.
           </p>
+        </article>
+
+        <article className="dashboard-panel dashboard-panel-wide">
+          <div className="panel-header">
+            <div>
+              <h2>AI-узагальнення</h2>
+
+              <p className="small-muted">
+                OpenAI API використовується для формування короткого текстового
+                пояснення рекомендацій, які вже були створені експертною системою
+                правил FitAI.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={generateAiSummary}
+              disabled={isGeneratingAiSummary}
+            >
+              {isGeneratingAiSummary
+                ? 'Генерація...'
+                : 'Згенерувати AI-узагальнення'}
+            </button>
+          </div>
+
+          {aiSummaryError && <p className="error">{aiSummaryError}</p>}
+
+          {!aiSummaryData ? (
+            <div className="empty-state compact">
+              <p>
+                AI-узагальнення ще не сформовано. Натисніть кнопку, щоб отримати
+                короткий висновок на основі профілю, тренувального прогресу,
+                харчування та rule-based рекомендацій.
+              </p>
+            </div>
+          ) : (
+            <div className="dashboard-ai-summary">
+              <div className="dashboard-ai-meta">
+                <span>
+                  Джерело:{' '}
+                  <strong>
+                    {aiSummaryData.source === 'openai_responses_api'
+                      ? 'OpenAI Responses API'
+                      : 'Fallback'}
+                  </strong>
+                </span>
+
+                <span>
+                  Модель: <strong>{aiSummaryData.model || 'Не вказано'}</strong>
+                </span>
+
+                <span>
+                  Статус:{' '}
+                  <strong>
+                    {aiSummaryData.available
+                      ? 'AI-узагальнення доступне'
+                      : 'Fallback-відповідь'}
+                  </strong>
+                </span>
+              </div>
+
+              <div className="dashboard-ai-text">
+                {renderAiSummary(aiSummaryData.aiSummary)}
+              </div>
+            </div>
+          )}
         </article>
 
         <article className="dashboard-panel">

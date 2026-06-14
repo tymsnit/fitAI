@@ -45,6 +45,20 @@ const toNumber = (value) => {
   return number;
 };
 
+const renderAiSummary = (text) => {
+  if (!text) {
+    return null;
+  }
+
+  return text
+    .split('\n')
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean)
+    .map((paragraph, index) => (
+      <p key={`${paragraph.slice(0, 20)}-${index}`}>{paragraph}</p>
+    ));
+};
+
 const RecommendationsPage = () => {
   const [data, setData] = useState({
     profile: null,
@@ -57,6 +71,9 @@ const RecommendationsPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState('');
+  const [aiSummaryData, setAiSummaryData] = useState(null);
+  const [isGeneratingAiSummary, setIsGeneratingAiSummary] = useState(false);
+  const [aiSummaryError, setAiSummaryError] = useState('');
 
   const loadRecommendations = async (isManualRefresh = false) => {
     try {
@@ -85,6 +102,37 @@ const RecommendationsPage = () => {
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
+    }
+  };
+
+  const generateAiSummary = async () => {
+    try {
+      setIsGeneratingAiSummary(true);
+      setAiSummaryError('');
+
+      const response = await apiClient.get('/ai-recommendations/summary');
+
+      setAiSummaryData({
+        available: response.data.available,
+        source: response.data.source,
+        model: response.data.model,
+        aiSummary: response.data.aiSummary,
+      });
+
+      setData({
+        profile: response.data.profile,
+        plan: response.data.plan,
+        statistics: response.data.statistics,
+        nutrition: response.data.nutrition,
+        recommendations: response.data.recommendations || [],
+      });
+    } catch (error) {
+      setAiSummaryError(
+        error.response?.data?.message ||
+          'Не вдалося згенерувати AI-узагальнення'
+      );
+    } finally {
+      setIsGeneratingAiSummary(false);
     }
   };
 
@@ -169,6 +217,72 @@ const RecommendationsPage = () => {
       <div className="notice">
         Рекомендації FitAI мають інформаційний характер і не є медичною,
         дієтологічною або професійною спортивною консультацією.
+      </div>
+
+      <div className="ai-summary-panel">
+        <div className="panel-header">
+          <div>
+            <h2>AI-узагальнення рекомендацій</h2>
+
+            <p className="small-muted">
+              Цей блок використовує OpenAI API для формування короткого текстового
+              пояснення рекомендацій, які вже були створені експертною системою
+              правил FitAI.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={generateAiSummary}
+            disabled={isGeneratingAiSummary}
+          >
+            {isGeneratingAiSummary
+              ? 'Генерація...'
+              : 'Згенерувати AI-узагальнення'}
+          </button>
+        </div>
+
+        {aiSummaryError && <p className="error">{aiSummaryError}</p>}
+
+        {!aiSummaryData ? (
+          <div className="empty-state compact">
+            <p>
+              AI-узагальнення ще не сформовано. Натисніть кнопку, щоб отримати
+              короткий текстовий висновок на основі профілю, тренувань, харчування
+              та rule-based рекомендацій.
+            </p>
+          </div>
+        ) : (
+          <div className="ai-summary-content">
+            <div className="ai-summary-meta">
+              <span>
+                Джерело:{' '}
+                <strong>
+                  {aiSummaryData.source === 'openai_responses_api'
+                    ? 'OpenAI Responses API'
+                    : 'Fallback'}
+                </strong>
+              </span>
+
+              <span>
+                Модель: <strong>{aiSummaryData.model || 'Не вказано'}</strong>
+              </span>
+
+              <span>
+                Статус:{' '}
+                <strong>
+                  {aiSummaryData.available
+                    ? 'AI-узагальнення доступне'
+                    : 'Fallback-відповідь'}
+                </strong>
+              </span>
+            </div>
+
+            <div className="ai-summary-text">
+              {renderAiSummary(aiSummaryData.aiSummary)}
+            </div>
+          </div>
+        )}
       </div>
 
       {error && <p className="error">{error}</p>}
