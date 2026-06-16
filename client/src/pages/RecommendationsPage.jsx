@@ -490,11 +490,11 @@ const RecommendationsPage = () => {
                       {getRecommendationTypeLabel(recommendation.type)}
                     </span>
 
-                    {recommendation.ruleId && (
+                    {/* {recommendation.ruleId && (
                       <span className="recommendation-rule">
                         {recommendation.ruleId}
                       </span>
-                    )}
+                    )} */}
                   </div>
 
                   <div className="recommendation-tags">

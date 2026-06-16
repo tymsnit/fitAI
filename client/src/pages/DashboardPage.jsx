@@ -598,9 +598,9 @@ const DashboardPage = () => {
                   className="dashboard-recommendation-item"
                 >
                   <span>
-                    {recommendation.ruleId
+                    {/* {recommendation.ruleId
                       ? `${recommendation.ruleId} · `
-                      : ''}
+                      : ''} */}
                     {recommendationTypeLabels[recommendation.type] ||
                       recommendation.type ||
                       'Рекомендація'}
